@@ -1,0 +1,22 @@
+/*
+ * Nextcloud Talk - Android Client
+ *
+ * SPDX-FileCopyrightText: 2017-2024 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-FileCopyrightText: 2022 Álvaro Brey <alvaro.brey@nextcloud.com>
+ * SPDX-FileCopyrightText: 2022 Tim Krüger <t@timkrueger.me>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+include ':app'
+
+//// uncomment to use local build of common-ui
+//includeBuild('../android-common') {
+//    dependencySubstitution {
+//        substitute module('com.github.nextcloud.android-common:ui') using project(':ui')
+//    }
+//}
+
+//includeBuild('../../../deps/ImagePicker') {
+//    dependencySubstitution {
+//        substitute module('com.github.nextcloud-deps:ImagePicker') using project(':imagepicker')
+//    }
+//}

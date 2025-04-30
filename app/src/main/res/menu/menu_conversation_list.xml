@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2024 Ibrahim Guler <contact@ibrahimguler.dev>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_create_conversation"
+        android:icon="@drawable/ic_search_white_24dp"
+        android:orderInCategory="0"
+        android:title="@string/nc_new_conversation"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_filter_conversations"
+        android:icon="@drawable/ic_baseline_filter_list_24"
+        android:orderInCategory="1"
+        android:title="@string/nc_filter"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_settings"
+        android:orderInCategory="2"
+        android:title="@string/nc_settings"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_server_selection"
+        android:orderInCategory="3"
+        android:title="@string/nc_about"
+        app:showAsAction="never" />
+
+</menu> 

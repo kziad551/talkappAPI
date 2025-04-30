@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2017-2019 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<resources>
+    <declare-styleable name="MicInputCloud">
+        <attr name="primaryColor" format="color" />
+        <attr name="pauseIcon" format="reference" />
+        <attr name="playIcon" format="reference" />
+    </declare-styleable>
+</resources>

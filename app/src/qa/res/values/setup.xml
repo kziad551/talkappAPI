@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2021 Andy Scherzinger <info@andy-scherzinger.de>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<resources>
+    <string name="nc_app_name">Talk QA</string>
+    <string name="nc_app_product_name">Nextcloud Talk QA</string>
+    <string name="nc_server_product_name">Nextcloud</string>
+</resources>

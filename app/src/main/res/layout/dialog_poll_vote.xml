@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2022 Marcel Hibbe <dev@mhibbe.de>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    tools:background="@color/white">
+
+    <ScrollView
+        android:id="@+id/vote_options_wrapper"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:id="@+id/vote_options_checkboxes_wrapper"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+            <RadioGroup
+                android:id="@+id/poll_vote_radio_group"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="-4dp"
+                tools:layout_height="400dp" />
+        </LinearLayout>
+    </ScrollView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/standard_margin"
+        android:layout_marginEnd="4dp"
+        android:orientation="vertical"
+        android:gravity="end">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/poll_vote_submit_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/min_size_clickable_area"
+            android:minWidth="@dimen/poll_buttons_min_width"
+            android:text="@string/polls_submit_vote"
+            app:cornerRadius="@dimen/button_corner_radius" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/poll_vote_edit_dismiss"
+            style="@style/OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/min_size_clickable_area"
+            android:minWidth="@dimen/poll_buttons_min_width"
+            android:text="@string/nc_common_dismiss"
+            android:visibility="gone"
+            app:cornerRadius="@dimen/button_corner_radius"
+            tools:visibility="visible" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/poll_vote_end_poll_button"
+            style="@style/OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:minHeight="@dimen/min_size_clickable_area"
+            android:minWidth="@dimen/poll_buttons_min_width"
+            android:text="@string/polls_end_poll"
+            app:cornerRadius="@dimen/button_corner_radius" />
+    </LinearLayout>
+
+</LinearLayout>

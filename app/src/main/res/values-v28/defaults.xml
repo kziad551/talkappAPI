@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2017-2019 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<resources>
+    <string name="nc_default_theme">@string/nc_settings_theme_follow_system_key</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2017-2019 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<resources>
+    <bool name="value_true">true</bool>
+    <bool name="value_false">false</bool>
+</resources>

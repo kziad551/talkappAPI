@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2022 Marcel Hibbe <dev@mhibbe.de>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:background="@color/white">
+
+    <TextView
+        android:id="@+id/poll_option_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Option Number One" />
+
+    <TextView
+        android:id="@+id/poll_option_percent_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/poll_option_text"
+        tools:text="50%" />
+
+    <com.google.android.material.progressindicator.LinearProgressIndicator
+        android:id="@+id/poll_option_bar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:indeterminate="false"
+        app:indicatorColor="@color/colorPrimary"
+        app:layout_constraintStart_toStartOf="@+id/poll_option_text"
+        app:layout_constraintTop_toBottomOf="@+id/poll_option_text"
+        app:trackColor="@color/dialog_background"
+        app:trackCornerRadius="5dp"
+        app:trackThickness="5dp"
+        android:paddingBottom="@dimen/standard_half_padding"
+        tools:progress="50" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

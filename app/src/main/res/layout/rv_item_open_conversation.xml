@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2023 Marcel Hibbe <dev@mhibbe.de>
+  ~ SPDX-FileCopyrightText: 2021 Andy Scherzinger <info@andy-scherzinger.de>
+  ~ SPDX-FileCopyrightText: 2017 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/standard_margin"
+    android:layout_marginTop="@dimen/standard_half_margin"
+    android:layout_marginEnd="@dimen/standard_margin"
+    android:layout_marginBottom="@dimen/standard_half_margin"
+    android:orientation="vertical">
+
+    <androidx.emoji2.widget.EmojiTextView
+        android:id="@+id/name_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/avatar_view"
+        android:layout_marginTop="@dimen/standard_quarter_margin"
+        android:ellipsize="end"
+        android:lines="1"
+        android:textAlignment="viewStart"
+        android:textAppearance="@style/ListItem"
+        tools:text="Jane Doe" />
+
+    <androidx.emoji2.widget.EmojiTextView
+        android:id="@+id/description_text"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toEndOf="@id/avatar_view"
+        android:layout_below= "@id/name_text"
+        android:paddingTop="@dimen/standard_quarter_margin"
+        android:ellipsize="end"
+        android:lines="1"
+        android:textAlignment="viewStart"
+        android:textColor="@color/low_emphasis_text"
+        android:textSize="13sp"
+        tools:text="Jane Doe" />
+
+    <ImageView
+        android:id="@+id/avatar_view"
+        android:layout_width="@dimen/avatar_size_open_conversation_list"
+        android:layout_height="@dimen/avatar_size_open_conversation_list"
+        android:layout_centerVertical="true"
+        android:layout_marginEnd="@dimen/standard_margin"
+        android:contentDescription="@string/avatar" />
+
+</RelativeLayout>

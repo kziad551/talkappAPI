@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory
+        android:title="@string/nc_app_name"
+        android:key="account_settings">
+        <Preference
+            android:key="account_server"
+            android:title="Server" />
+        <Preference
+            android:key="account_username"
+            android:title="Username" />
+    </PreferenceCategory>
+</PreferenceScreen> 

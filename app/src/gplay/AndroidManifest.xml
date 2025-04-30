@@ -1,0 +1,36 @@
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2017-2024 Nextcloud GmbH and Nextcloud contributors
+  ~ SPDX-FileCopyrightText: 2022 Tim Krüger <t@timkrueger.me>
+  ~ SPDX-FileCopyrightText: 2017-2019 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+          xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:name=".application.NextcloudTalkApplication"
+        android:allowBackup="true"
+        android:fullBackupContent="@xml/backup_config"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/nc_app_name"
+        android:networkSecurityConfig="@xml/network_security_config"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme.Launcher"
+        tools:replace="label, icon, theme, name, allowBackup"
+        tools:ignore="UnusedAttribute, ExportedService">
+
+        <meta-data android:name="firebase_analytics_collection_deactivated" android:value="true" />
+        <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
+
+        <service
+            android:name=".services.firebase.NCFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT"/>
+            </intent-filter>
+        </service>
+
+    </application>
+</manifest>

@@ -1,0 +1,51 @@
+/*
+ * Nextcloud Talk - Android Client
+ *
+ * SPDX-FileCopyrightText: 2017-2024 Nextcloud GmbH and Nextcloud contributors
+ * SPDX-FileCopyrightText: 2024 Marcel Hibbe <dev@mhibbe.de>
+ * SPDX-FileCopyrightText: 2021 Andy Scherzinger <info@andy-scherzinger.de>
+ * SPDX-FileCopyrightText: 2017-2019 Mario Danic <mario@lovelyhq.com>
+ * SPDX-License-Identifier: GPL-3.0-or-later
+ */
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+buildscript {
+
+    ext {
+      kotlinVersion = '2.1.20'
+    }
+
+    repositories {
+        google()
+        gradlePluginPortal()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.9.2'
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
+        classpath "org.jetbrains.kotlin:kotlin-serialization:${kotlinVersion}"
+        classpath 'com.github.spotbugs.snom:spotbugs-gradle-plugin:6.1.9'
+        classpath "io.gitlab.arturbosch.detekt:detekt-gradle-plugin:1.23.8"
+        classpath "org.jlleitschuh.gradle:ktlint-gradle:12.2.0"
+        // NOTE: Do not place your application dependencies here; they belong
+        // in the individual module build.gradle files
+    }
+}
+
+configurations.configureEach {
+    exclude group: 'org.jetbrains', module: 'annotations-java5' // via prism4j, already using annotations explicitly
+    // check for updates every build
+    resolutionStrategy.cacheChangingModulesFor 3600, 'seconds'
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+        maven { url 'https://jitpack.io' }
+    }
+}
+
+tasks.register('clean', Delete) {
+    delete rootProject.buildDir
+}

@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2017 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<resources>
+    <array name="proxy_type_descriptions">
+        <item>@string/nc_no_proxy</item>
+        <item>HTTP</item>
+        <item>DIRECT</item>
+        <item>SOCKS</item>
+    </array>
+
+    <array name="message_notification_levels">
+        <item>@string/nc_notify_me_never</item>
+        <item>@string/nc_notify_me_mention</item>
+        <item>@string/nc_notify_me_always</item>
+    </array>
+
+    <array name="message_notification_levels_entry_values">
+        <item>never</item>
+        <item>mention</item>
+        <item>always</item>
+    </array>
+
+    <array name="screen_lock_timeout_descriptions">
+        <item>@string/nc_screen_lock_timeout_immediate</item>
+        <item>@string/nc_screen_lock_timeout_30</item>
+        <item>@string/nc_screen_lock_timeout_60</item>
+        <item>@string/nc_screen_lock_timeout_300</item>
+        <item>@string/nc_screen_lock_timeout_600</item>
+    </array>
+
+    <array name="screen_lock_timeout_entry_values">
+        <item>@string/nc_screen_lock_timeout_immediate</item>
+        <item>@string/nc_screen_lock_timeout_thirty</item>
+        <item>@string/nc_screen_lock_timeout_sixty</item>
+        <item>@string/nc_screen_lock_timeout_three_hundred</item>
+        <item>@string/nc_screen_lock_timeout_six_hundred</item>
+    </array>
+
+    <array name="screen_lock_timeout_entry_int_values">
+        <item>1</item>
+        <item>30</item>
+        <item>60</item>
+        <item>300</item>
+        <item>600</item>
+    </array>
+
+    <array name="theme_descriptions">
+        <item>@string/nc_settings_theme_follow_system</item>
+        <item>@string/nc_settings_theme_light</item>
+        <item>@string/nc_settings_theme_dark</item>
+    </array>
+
+    <array name="theme_entry_values">
+        <item>@string/nc_settings_theme_follow_system_key</item>
+        <item>@string/nc_settings_theme_light_key</item>
+        <item>night_yes</item>
+    </array>
+
+</resources>

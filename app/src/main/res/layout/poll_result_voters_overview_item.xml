@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2022 Marcel Hibbe <dev@mhibbe.de>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/voters_avatars_overview_wrapper"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="4dp"
+    android:orientation="horizontal"
+    tools:background="@color/white">
+</RelativeLayout>

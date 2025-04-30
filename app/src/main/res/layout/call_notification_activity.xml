@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2022 Tim Krüger <t@timkrueger.me>
+  ~ SPDX-FileCopyrightText: 2021 Andy Scherzinger <info@andy-scherzinger.de>
+  ~ SPDX-FileCopyrightText: 2017-2018 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/callNotificationLayout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/grey950">
+
+    <LinearLayout
+        android:id="@+id/callAnswerButtons"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:animateLayoutChanges="true"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/callAnswerVoiceOnlyView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="24dp"
+            android:background="@drawable/shape_oval"
+            android:backgroundTint="@color/nc_darkGreen"
+            android:src="@drawable/ic_call_white_24dp"
+            android:contentDescription="@string/nc_call_button_content_description_answer_voice_only" />
+
+        <ImageButton
+            android:id="@+id/hangupButton"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="24dp"
+            android:background="@drawable/shape_oval"
+            android:backgroundTint="@color/nc_darkRed"
+            android:src="@drawable/ic_call_end_white_24px"
+            android:contentDescription="@string/nc_call_button_content_description_hangup" />
+
+        <ImageButton
+            android:id="@+id/callAnswerCameraView"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_margin="24dp"
+            android:background="@drawable/shape_oval"
+            android:backgroundTint="@color/nc_darkGreen"
+            android:src="@drawable/ic_videocam_white_24px"
+            android:contentDescription="@string/nc_call_button_content_description_answer_video_call" />
+    </LinearLayout>
+
+    <RelativeLayout
+        android:id="@+id/incomingCallRelativeLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/incomingCallVoiceOrVideoTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:text="@string/nc_call_unknown"
+            android:textAlignment="center"
+            android:textColor="@color/call_incomingCallTextView"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/conversationNameTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/incomingCallVoiceOrVideoTextView"
+            android:layout_marginBottom="16dp"
+            android:ellipsize="marquee"
+            android:textAlignment="center"
+            android:textColor="@color/white"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            tools:text="Victor Gregorius Magnus" />
+
+        <TextView
+            android:id="@+id/incomingCallDescriptionTextView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@+id/conversationNameTextView"
+            android:text="@string/nc_call_incoming"
+            android:textAlignment="center"
+            android:textColor="@color/call_incomingCallTextView"
+            android:textSize="16sp" />
+
+    </RelativeLayout>
+
+    <ImageView
+        android:id="@+id/avatarImageView"
+        android:layout_width="@dimen/avatar_size_big"
+        android:layout_height="@dimen/avatar_size_big"
+        android:layout_centerInParent="true"
+        android:contentDescription="@string/avatar" />
+
+</RelativeLayout>

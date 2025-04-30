@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2023 Marcel Hibbe <dev@mhibbe.de>
+  ~ SPDX-FileCopyrightText: 2022 Tim Krüger <t@timkrueger.me>
+  ~ SPDX-FileCopyrightText: 2022 Andy Scherzinger <info@andy-scherzinger.de>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_default"
+    tools:context=".shareditems.activities.SharedItemsActivity">
+
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/shared_items_appbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/shared_items_toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="@color/appbar"
+            android:theme="?attr/actionBarPopupTheme"
+            app:layout_scrollFlags="scroll|enterAlways"
+            app:navigationIconTint="@color/fontAppbar"
+            app:popupTheme="@style/appActionBarPopupMenu"
+            app:titleTextColor="@color/fontAppbar"
+            tools:title="@string/nc_app_product_name" />
+
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/shared_items_tabs"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/min_size_clickable_area"
+            android:background="@color/appbar"
+            app:tabGravity="fill"
+            app:tabMode="scrollable"
+            app:tabMaxWidth="0dp"
+            app:tabTextAppearance="@style/TextAppearanceTab" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <include
+        android:id="@+id/emptyContainer"
+        layout="@layout/empty_list"
+        android:visibility="gone"
+        tools:visibility="visible" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/image_recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:listitem="@layout/shared_item_grid" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

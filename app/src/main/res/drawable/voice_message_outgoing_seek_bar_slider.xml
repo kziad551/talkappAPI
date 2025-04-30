@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2021 Marcel Hibbe <dev@mhibbe.de>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+    <size
+        android:width="12dp"
+        android:height="12dp" />
+    <solid android:color="#ffffff" />
+    <corners android:radius="1dp" />
+</shape>

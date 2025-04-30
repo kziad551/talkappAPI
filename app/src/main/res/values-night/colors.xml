@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  ~ Nextcloud Talk - Android Client
+  ~
+  ~ SPDX-FileCopyrightText: 2021 Andy Scherzinger <info@andy-scherzinger.de>
+  ~ SPDX-FileCopyrightText: 2019 Daniel Bailey <db@grappleIT.co.uk>
+  ~ SPDX-FileCopyrightText: 2017-2019 Mario Danic <mario@lovelyhq.com>
+  ~ SPDX-License-Identifier: GPL-3.0-or-later
+-->
+<resources>
+    <color name="colorPrimary">#0082C9</color>
+    <color name="colorPrimaryDark">#006AA3</color>
+    <color name="colorAccent">@color/colorPrimary</color>
+    <color name="disabled_text">#ff6F6F6F</color>
+
+    <!-- App bar -->
+    <color name="appbar">#1E1E1E</color>
+    <color name="fontAppbar">#FFFFFF</color>
+
+    <!-- general text colors -->
+    <color name="no_emphasis_text">#ffffff</color>
+    <color name="high_emphasis_text">#deffffff</color>
+    <color name="medium_emphasis_text">#99ffffff</color>
+    <color name="low_emphasis_text">#61ffffff</color>
+
+    <!-- bottom sheet specific icon default color -->
+    <color name="high_emphasis_menu_icon">#8Affffff</color>
+
+    <color name="bg_default">#121212</color>
+    <color name="bg_default_semitransparent">#99121212</color>
+
+    <color name="fg_default">#FFFFFF</color>
+    <color name="fg_inverse">#121212</color>
+
+    <color name="nc_darkGreen">#00AA00</color>
+
+    <color name="conversation_unread_bubble">#373737</color>
+    <color name="conversation_unread_bubble_text">#D8D8D8</color>
+
+    <color name="chat_separator">#484848</color>
+
+    <!-- Chat window incoming message text & informational -->
+    <color name="bg_bottom_sheet">#121212</color>
+    <color name="bg_message_list_incoming_bubble">#2A2A2A</color>
+    <color name="bg_message_list_incoming_bubble_deleted">#14FFFFFF</color>
+    <color name="bg_message_list_incoming_bubble_audio_played">#3F3F73</color>
+    <color name="bg_message_list_outgoing_bubble_audio_played">#313B75</color>
+
+    <color name="textColorMaxContrast">#8c8c8c</color>
+    
+    <color name="bg_message_own_reaction">#29ffffff</color>
+
+    <!-- shimmer element colors -->
+    <color name="nc_shimmer_default_color">#4B4B4B</color>
+    <color name="nc_shimmer_darker_color">#282828</color>
+
+    <color name="list_divider_background">#1FFFFFFF</color>
+    <color name="grey_200">#818181</color>
+
+    <color name="dialog_background">#353535</color>
+
+    <color name="icon_on_bg_default">#99FFFFFF</color>
+
+</resources>
