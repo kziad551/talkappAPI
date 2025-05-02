@@ -6,7 +6,9 @@ import android.accounts.AccountManager
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.app.Service
+import android.app.TaskStackBuilder
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -18,7 +20,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.nextcloud.talk.BuildConfig
 import com.nextcloud.talk.R
+import com.nextcloud.talk.chat.ChatActivity
+import com.nextcloud.talk.conversationlist.ConversationsListActivity
 import com.nextcloud.talk.utils.NotificationPermissionHelper
+import com.nextcloud.talk.utils.bundle.BundleKeys
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -32,100 +37,87 @@ import java.util.concurrent.TimeUnit
 import kotlin.math.min
 
 class PingForegroundService : Service() {
+
+    // --- constants ---------------------------------------------------------
+
     private val TAG = "PingForegroundService"
-    private val NOTIF_ID = 1
-    private val CHANNEL_PING = "ping_channel"
-    private val CHANNEL_CHAT = "chat_channel"
-    private val PREFS_NAME = "PingServicePrefs"
-    private val KEY_LAST_NOTIF_ID = "last_notif_id"
-    private val KEY_LAST_CHAT_ID = "last_chat_id"
-    private val KEY_LAST_ROOM_TOKEN = "last_room_token"
-    private val KEY_CONSECUTIVE_ERRORS = "consecutive_errors"
-    
-    // Static test credentials
-    private val TEST_MODE = true
-    private val TEST_SERVER_URL = "https://nextcloud.wztechno.com"
-    private val TEST_USERNAME = "admin"
-    private val TEST_PASSWORD = "admin"
-    private val TEST_API_URL = "https://nextcloud.wztechno.com/ocs/v2.php/apps/notifications/api/v2/notifications"
-    
-    private val serviceScope = CoroutineScope(Dispatchers.IO + Job())
+
+    private val NOTIF_ID              = 1
+    private val CHANNEL_PING          = "ping_channel"
+    private val CHANNEL_CHAT          = "chat_channel"
+
+    private val PREFS_NAME            = "PingServicePrefs"
+    private val KEY_LAST_NOTIF_ID     = "last_notif_id"
+    private val KEY_LAST_CHAT_ID      = "last_chat_id"
+    private val KEY_LAST_ROOM_TOKEN   = "last_room_token"
+    private val KEY_CONSECUTIVE_ERR   = "consecutive_errors"
+
+    // --- test credentials --------------------------------------------------
+
+    private val TEST_MODE        = true
+    private val TEST_SERVER_URL  = "https://nextcloud.wztechno.com"
+    private val TEST_USERNAME    = "admin"
+    private val TEST_PASSWORD    = "admin"
+    private val TEST_API_URL     = "$TEST_SERVER_URL/ocs/v2.php/apps/notifications/api/v2/notifications"
+
+    // --- members -----------------------------------------------------------
+
+    private val svcScope     = CoroutineScope(Dispatchers.IO + Job())
     private lateinit var prefs: SharedPreferences
+
     private val client = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
-        .readTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30,  TimeUnit.SECONDS)
         .build()
-        
+
+    // will be kept in prefs, too
     private var consecutiveErrors = 0
-    private val maxBackoffSeconds = 300 // 5 minutes max delay
+    private val maxBackoffSeconds = 300      // 5-minutes cap
+
+    // -----------------------------------------------------------------------
 
     companion object {
-        /** Convenience helper to start service from anywhere */
         fun start(ctx: Context) {
             if (!NotificationPermissionHelper.hasNotificationPermission(ctx)) {
                 Log.d("PingForegroundService", "Notification permission not granted")
                 return
             }
-            
-            // Don't start if notifications are disabled
-            val notificationManager = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            if (!notificationManager.areNotificationsEnabled()) {
-                Log.d("PingForegroundService", "Notifications are disabled by the user")
+            val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            if (!nm.areNotificationsEnabled()) {
+                Log.d("PingForegroundService", "Notifications disabled by the user")
                 return
             }
-            
             ctx.startForegroundService(Intent(ctx, PingForegroundService::class.java))
         }
     }
 
+    // -----------------------------------------------------------------------
+
     override fun onCreate() {
         super.onCreate()
+
         prefs = getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        consecutiveErrors = prefs.getInt(KEY_CONSECUTIVE_ERR, 0)
+
         createNotificationChannels()
-        
-        val notification = createPersistentNotification()
-        startForeground(NOTIF_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
-        
-        // Start periodic checks only if we have notification permission
+        startForeground(
+            NOTIF_ID,
+            createPersistentNotification(),
+            android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+        )
+
         if (NotificationPermissionHelper.hasNotificationPermission(this)) {
             startPeriodicChecks()
         } else {
-            Log.e(TAG, "Missing notification permission - service cannot function properly")
+            Log.e(TAG, "Missing notification permission – stopping")
             stopSelf()
         }
     }
 
-    private fun startPeriodicChecks() {
-        consecutiveErrors = prefs.getInt(KEY_CONSECUTIVE_ERRORS, 0)
-        
-        serviceScope.launch {
-            while (true) {
-                try {
-                    val delaySeconds = if (consecutiveErrors > 0) {
-                        // Exponential backoff: 2^errors seconds, max 5 minutes
-                        val backoffSeconds = min(Math.pow(2.0, consecutiveErrors.toDouble()).toInt(), maxBackoffSeconds)
-                        Log.d(TAG, "Using backoff delay of $backoffSeconds seconds after $consecutiveErrors consecutive errors")
-                        backoffSeconds
-                    } else {
-                        30 // Standard 30-second check (changed from 60)
-                    }
-                    
-                    checkNextcloudForUpdates()
-                    delay(delaySeconds * 1000L)
-                } catch (e: Exception) {
-                    Log.e(TAG, "Error in periodic check", e)
-                    delay(60000) // Wait a minute before retrying
-                }
-            }
-        }
-    }
-
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        // If we don't have notification permission or notifications are disabled, stop the service
-        val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (!NotificationPermissionHelper.hasNotificationPermission(this) || 
-            !notificationManager.areNotificationsEnabled()) {
-            Log.e(TAG, "Missing notification permission or notifications disabled - stopping service")
+        val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (!NotificationPermissionHelper.hasNotificationPermission(this) || !nm.areNotificationsEnabled()) {
+            Log.e(TAG, "Permission revoked / notifications disabled – stopping service")
             stopSelf()
             return START_NOT_STICKY
         }
@@ -134,283 +126,248 @@ class PingForegroundService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun createNotificationChannels() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val pingChannel = NotificationChannel(
-                CHANNEL_PING,
-                "Ping Notifications",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Periodic test notifications"
-                setShowBadge(false)
-            }
+    // -----------------------------------------------------------------------
+    // Polling loop
+    // -----------------------------------------------------------------------
 
-            val chatChannel = NotificationChannel(
-                CHANNEL_CHAT,
-                "Chat Notifications",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "New chat message notifications"
-                setShowBadge(true)
-            }
+    private fun startPeriodicChecks() {
+        svcScope.launch {
+            while (true) {
+                val delaySec = if (consecutiveErrors > 0) {
+                    min(1.shl(consecutiveErrors), maxBackoffSeconds)
+                } else {
+                    30                                          // 🔔 30-second cycle
+                }
 
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager.createNotificationChannels(listOf(pingChannel, chatChannel))
+                try {
+                    checkNextcloudForUpdates()
+                    delay(delaySec * 1000L)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Unexpected error in loop", e)
+                    delay(60_000)
+                }
+            }
         }
     }
 
-    private fun createPersistentNotification(): Notification {
-        return NotificationCompat.Builder(this, CHANNEL_PING)
-            .setContentTitle("Talk dev service is running")
-            .setContentText("Polling server every minute")
-            .setSmallIcon(R.drawable.ic_notification)
-            .setPriority(NotificationCompat.PRIORITY_LOW)
-            .setOngoing(true)
-            .build()
-    }
+    // -----------------------------------------------------------------------
 
     private suspend fun checkNextcloudForUpdates() {
-        // Use static test credentials if in test mode
         if (TEST_MODE) {
-            Log.d(TAG, "🧪 Using test credentials")
-            Log.d(TAG, "   Server URL: $TEST_SERVER_URL")
-            Log.d(TAG, "   Username: $TEST_USERNAME")
-            Log.d(TAG, "   API URL: $TEST_API_URL")
-            
-            try {
-                // Check both notifications and chat messages
-                val notificationsOk = checkNotifications(TEST_SERVER_URL, TEST_USERNAME, TEST_PASSWORD)
-                
-                // Don't check chat messages in test mode
-                // val chatMessagesOk = checkChatMessages(TEST_SERVER_URL, TEST_USERNAME, TEST_PASSWORD)
-                
-                if (notificationsOk) {
-                    // Reset error counter if at least one check was successful
-                    if (consecutiveErrors > 0) {
-                        consecutiveErrors = 0
-                        prefs.edit().putInt(KEY_CONSECUTIVE_ERRORS, 0).apply()
-                        Log.d(TAG, "Reset consecutive error counter")
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error checking for updates with test credentials", e)
-                incrementConsecutiveErrors()
+            if (checkNotifications(TEST_SERVER_URL, TEST_USERNAME, TEST_PASSWORD)) {
+                resetErrorCounter()
             }
             return
         }
-        
-        // Normal account-based operation
-        val accountManager = AccountManager.get(this)
-        val accounts = accountManager.getAccountsByType("com.nextcloud.talk")
-        
-        if (accounts.isEmpty()) {
-            Log.d(TAG, "No accounts found")
+
+        val am       = AccountManager.get(this)
+        val accounts = am.getAccountsByType("com.nextcloud.talk")
+        if (accounts.isEmpty()) { Log.d(TAG, "No NC accounts"); return }
+
+        val acc        = accounts[0]
+        val serverUrl  = am.getUserData(acc, "server_url")
+        val rawUser    = am.getUserData(acc, "raw_username")
+        val pwd        = am.getPassword(acc)
+
+        if (serverUrl == null || rawUser == null || pwd == null) {
+            Log.e(TAG, "Missing credentials data")
+            incrementErrorCounter()
             return
         }
 
-        val account = accounts[0]
-        val serverUrl = accountManager.getUserData(account, "server_url")
-        val rawUsername = accountManager.getUserData(account, "raw_username")
-        val password = accountManager.getPassword(account)
+        val notifOk = checkNotifications(serverUrl, rawUser, pwd)
+        val chatOk  = checkChatMessages(serverUrl, rawUser, pwd)
 
-        if (serverUrl == null || password == null || rawUsername == null) {
-            Log.e(TAG, "Missing server URL, username or password")
-            Log.e(TAG, "  serverUrl: ${serverUrl != null}")
-            Log.e(TAG, "  rawUsername: ${rawUsername != null}")
-            Log.e(TAG, "  password: ${password != null}")
-            incrementConsecutiveErrors()
-            return
-        }
-
-        // Debug log credentials
-        Log.d(TAG, "🔑 Using credentials:")
-        Log.d(TAG, "   Server URL: $serverUrl")
-        Log.d(TAG, "   Username: $rawUsername")
-        Log.d(TAG, "   Password: ${if (password.isNotEmpty()) "***" else "empty"}")
-
-        try {
-            // Check both notifications and chat messages
-            val notificationsOk = checkNotifications(serverUrl, rawUsername, password)
-            val chatMessagesOk = checkChatMessages(serverUrl, rawUsername, password)
-            
-            if (notificationsOk || chatMessagesOk) {
-                // Reset error counter if at least one check was successful
-                if (consecutiveErrors > 0) {
-                    consecutiveErrors = 0
-                    prefs.edit().putInt(KEY_CONSECUTIVE_ERRORS, 0).apply()
-                    Log.d(TAG, "Reset consecutive error counter")
-                }
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "Error checking for updates", e)
-            incrementConsecutiveErrors()
-        }
+        if (notifOk || chatOk) resetErrorCounter()
     }
-    
-    private fun incrementConsecutiveErrors() {
-        consecutiveErrors++
-        prefs.edit().putInt(KEY_CONSECUTIVE_ERRORS, consecutiveErrors).apply()
-        Log.d(TAG, "Incremented consecutive errors to $consecutiveErrors")
-    }
+
+    // -----------------------------------------------------------------------
+    // Notification  & chat polling
+    // -----------------------------------------------------------------------
 
     private suspend fun checkNotifications(serverUrl: String, username: String, password: String): Boolean {
-        // Use static test API URL if in test mode
-        val apiUrl = if (TEST_MODE) {
-            TEST_API_URL + "?format=json"
-        } else {
-            "$serverUrl/ocs/v2.php/apps/notifications/api/v2/notifications?format=json"
-        }
-        
-        val credentials = Credentials.basic(username, password)
+        val apiUrl = if (TEST_MODE) "$TEST_API_URL?format=json"
+                     else "$serverUrl/ocs/v2.php/apps/notifications/api/v2/notifications?format=json"
 
-        Log.d(TAG, "🔍 Checking notifications at: $apiUrl")
-        
-        val request = Request.Builder()
+        val req = Request.Builder()
             .url(apiUrl)
-            .header("Authorization", credentials)
+            .header("Authorization", Credentials.basic(username, password))
             .header("OCS-APIRequest", "true")
             .header("Accept", "application/json")
             .build()
 
         try {
-            val response = client.newCall(request).execute()
-            if (!response.isSuccessful) {
-                Log.e(TAG, "Failed to fetch notifications: ${response.code}")
-                incrementConsecutiveErrors()
-                return false
-            }
-
-            val responseBody = response.body?.string()
-            if (responseBody == null) {
-                Log.e(TAG, "Empty response body")
-                return false
-            }
-
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "⏬ Notifications API response:\n$responseBody")
-            }
-
-            val json = JSONObject(responseBody)
-            val notifications = json.getJSONObject("ocs").getJSONArray("data")
-            
-            Log.d(TAG, "Received ${notifications.length()} notifications")
-            
-            if (notifications.length() > 0) {
-                val lastNotifId = prefs.getInt(KEY_LAST_NOTIF_ID, -1)
-                val currentNotifId = notifications.getJSONObject(0).getInt("notification_id")
-                
-                Log.d(TAG, "📊 Notification comparison:")
-                Log.d(TAG, "   Last notification ID: $lastNotifId")
-                Log.d(TAG, "   Current notification ID: $currentNotifId")
-                
-                if (currentNotifId > lastNotifId) {
-                    val notification = notifications.getJSONObject(0)
-                    val title = notification.getString("subject")
-                    val message = notification.getString("message")
-                    
-                    Log.d(TAG, "📨 New notification detected:")
-                    Log.d(TAG, "   Title: $title")
-                    Log.d(TAG, "   Message: $message")
-                    
-                    showNewMessageNotification(title, message)
-                    prefs.edit().putInt(KEY_LAST_NOTIF_ID, currentNotifId).apply()
-                    Log.d(TAG, "✅ Updated last notification ID to: $currentNotifId")
-                } else {
-                    Log.d(TAG, "⏭️ No new notifications, skipping")
+            client.newCall(req).execute().use { rsp ->
+                if (!rsp.isSuccessful) {
+                    Log.e(TAG, "Notif fetch failed: ${rsp.code}")
+                    incrementErrorCounter(); return false
                 }
+
+                val body = rsp.body?.string() ?: return false
+                if (BuildConfig.DEBUG) Log.d(TAG, "⏬ Notifications:\n$body")
+
+                val dataArr = JSONObject(body).getJSONObject("ocs").getJSONArray("data")
+                if (dataArr.length() == 0) return true
+
+                val newId       = dataArr.getJSONObject(0).getInt("notification_id")
+                val lastSavedId = prefs.getInt(KEY_LAST_NOTIF_ID, -1)
+                if (newId > lastSavedId) {
+                    val n          = dataArr.getJSONObject(0)
+                    val title      = n.getString("subject")
+                    val text       = n.getString("message")
+                    val roomToken  = n.extractRoomToken()
+
+                    Log.d(TAG, "📨 New notification ($newId) – token: $roomToken")
+                    showNewMessageNotification(title, text, roomToken)
+
+                    prefs.edit().putInt(KEY_LAST_NOTIF_ID, newId).apply()
+                }
+                return true
             }
-            return true
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking notifications", e)
-            return false
+            Log.e(TAG, "Notif check error", e); return false
         }
     }
 
     private suspend fun checkChatMessages(serverUrl: String, username: String, password: String): Boolean {
-        val roomToken = prefs.getString(KEY_LAST_ROOM_TOKEN, null)
-        if (roomToken == null) {
-            Log.d(TAG, "💬 No room token available - skipping chat message check")
-            return true  // Not a failure, just no data yet
-        }
-        
-        val lastChatId = prefs.getInt(KEY_LAST_CHAT_ID, -1)
-        
-        Log.d(TAG, "💬 Chat message check:")
-        Log.d(TAG, "   Room token: $roomToken")
-        Log.d(TAG, "   Last chat ID: $lastChatId")
-        
-        val apiUrl = "$serverUrl/ocs/v2.php/apps/spreed/api/v4/room/$roomToken/messages?format=json&lastKnownMessageId=$lastChatId"
-        val credentials = Credentials.basic(username, password)
+        val roomToken = prefs.getString(KEY_LAST_ROOM_TOKEN, null) ?: return true
+        val lastId    = prefs.getInt(KEY_LAST_CHAT_ID, -1)
 
-        val request = Request.Builder()
+        val apiUrl = "$serverUrl/ocs/v2.php/apps/spreed/api/v4/room/$roomToken/messages" +
+                     "?format=json&lastKnownMessageId=$lastId"
+
+        val req = Request.Builder()
             .url(apiUrl)
-            .header("Authorization", credentials)
+            .header("Authorization", Credentials.basic(username, password))
             .header("OCS-APIRequest", "true")
             .header("Accept", "application/json")
             .build()
 
         try {
-            val response = client.newCall(request).execute()
-            if (!response.isSuccessful) {
-                Log.e(TAG, "Failed to fetch chat messages: ${response.code}")
-                return false
-            }
+            client.newCall(req).execute().use { rsp ->
+                if (!rsp.isSuccessful) { Log.e(TAG, "Chat fetch failed: ${rsp.code}"); return false }
 
-            val responseBody = response.body?.string()
-            if (responseBody == null) {
-                Log.e(TAG, "Empty chat response body")
-                return false
-            }
+                val body = rsp.body?.string() ?: return false
+                if (BuildConfig.DEBUG) Log.d(TAG, "⏬ Chat:\n$body")
 
-            if (BuildConfig.DEBUG) {
-                Log.d(TAG, "⏬ Chat API response:\n$responseBody")
-            }
+                val dataArr = JSONObject(body).getJSONObject("ocs").getJSONArray("data")
+                if (dataArr.length() == 0) return true
 
-            val json = JSONObject(responseBody)
-            val messages = json.getJSONObject("ocs").getJSONArray("data")
-            
-            Log.d(TAG, "Received ${messages.length()} new chat messages")
-            
-            if (messages.length() > 0) {
-                val lastMessage = messages.getJSONObject(messages.length() - 1)
-                val newLastId = lastMessage.getInt("id")
-                
-                Log.d(TAG, "📨 New chat messages detected:")
-                Log.d(TAG, "   Number of new messages: ${messages.length()}")
-                Log.d(TAG, "   Last message ID: $newLastId")
-                
-                // Show notification for each new message
-                for (i in 0 until messages.length()) {
-                    val message = messages.getJSONObject(i)
-                    val sender = message.getString("actorDisplayName")
-                    val text = message.getString("message")
-                    
-                    Log.d(TAG, "   Message from $sender: $text")
-                    showNewMessageNotification("New message from $sender", text)
+                for (i in 0 until dataArr.length()) {
+                    val m     = dataArr.getJSONObject(i)
+                    val from  = m.getString("actorDisplayName")
+                    val text  = m.getString("message")
+                    showNewMessageNotification("New message from $from", text, roomToken)
                 }
-                
-                prefs.edit().putInt(KEY_LAST_CHAT_ID, newLastId).apply()
-                Log.d(TAG, "✅ Updated last chat ID to: $newLastId")
-            } else {
-                Log.d(TAG, "⏭️ No new chat messages, skipping")
+
+                val newLast = dataArr.getJSONObject(dataArr.length() - 1).getInt("id")
+                prefs.edit().putInt(KEY_LAST_CHAT_ID, newLast).apply()
+                return true
             }
-            return true
         } catch (e: Exception) {
-            Log.e(TAG, "Error checking chat messages", e)
-            return false
+            Log.e(TAG, "Chat check error", e); return false
         }
     }
 
-    private fun showNewMessageNotification(title: String, message: String) {
+    // -----------------------------------------------------------------------
+    // Notification helpers
+    // -----------------------------------------------------------------------
+
+    /** Extracts Talk room-token from different API variants */
+    private fun JSONObject.extractRoomToken(): String {
+        optString("roomToken").takeIf { it.isNotEmpty() }?.let { return it }
+
+        optString("object_id").substringBefore('/').takeIf { it.isNotEmpty() }?.let { return it }
+
+        val link = optString("link")
+        val idx  = link.indexOf("/call/")
+        if (idx != -1) {
+            val start = idx + "/call/".length
+            return link.substring(start).substringBefore('#')
+        }
+        return ""
+    }
+
+    private fun showNewMessageNotification(title: String, message: String, roomToken: String) {
+        // Create an intent based on whether we have a room token
+        val intent = if (roomToken.isEmpty()) {
+            Log.d(TAG, "No room token available - will open conversation list")
+            Intent(this, ConversationsListActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+            }
+        } else {
+            Intent(this, ChatActivity::class.java).apply {
+                flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                putExtra(BundleKeys.KEY_ROOM_TOKEN, roomToken)
+            }
+        }
+
+        // Create a proper back stack with TaskStackBuilder
+        val pendingIntent = TaskStackBuilder.create(this).run {
+            // Add the back stack
+            addNextIntentWithParentStack(intent)
+            // Get the PendingIntent containing the entire back stack
+            getPendingIntent(
+                0,
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_MUTABLE
+                else
+                    PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        }
+
         val notification = NotificationCompat.Builder(this, CHANNEL_CHAT)
             .setContentTitle(title)
             .setContentText(message)
             .setSmallIcon(R.drawable.ic_notification)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
             .build()
 
         val notificationManager = getSystemService(NotificationManager::class.java)
-        notificationManager.notify(System.currentTimeMillis().toInt(), notification)
+        // Use room token hash as notification ID to collapse notifications per room
+        // If no room token, use a fixed ID for general notifications
+        val notificationId = if (roomToken.isEmpty()) NOTIF_ID + 1 else roomToken.hashCode()
+        notificationManager.notify(notificationId, notification)
+    }
+
+    private fun createPersistentNotification(): Notification =
+        NotificationCompat.Builder(this, CHANNEL_PING)
+            .setContentTitle("Talk dev service is running")
+            .setContentText("Polling server every 30 s")
+            .setSmallIcon(R.drawable.ic_notification)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
+
+    private fun createNotificationChannels() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val ping = NotificationChannel(CHANNEL_PING, "Ping Notifications", NotificationManager.IMPORTANCE_LOW)
+                .apply { description = "Periodic background polling" }
+
+            val chat = NotificationChannel(CHANNEL_CHAT, "Chat Notifications", NotificationManager.IMPORTANCE_DEFAULT)
+                .apply { description = "New chat messages" }
+
+            (getSystemService(NotificationManager::class.java))
+                .createNotificationChannels(listOf(ping, chat))
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // error-counter helpers
+    // -----------------------------------------------------------------------
+
+    private fun resetErrorCounter() {
+        if (consecutiveErrors != 0) {
+            consecutiveErrors = 0
+            prefs.edit().putInt(KEY_CONSECUTIVE_ERR, 0).apply()
+        }
+    }
+
+    private fun incrementErrorCounter() {
+        consecutiveErrors++
+        prefs.edit().putInt(KEY_CONSECUTIVE_ERR, consecutiveErrors).apply()
+        Log.d(TAG, "Incremented consecutive errors → $consecutiveErrors")
     }
 }
